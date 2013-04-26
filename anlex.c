@@ -1,13 +1,12 @@
 /*
- *	Analizador Léxico	
+ *	Analizador LÃ©xico	
  *	Curso: Compiladores y Lenguajes de Bajo de Nivel
- *	Práctica de Programación Nro. 1
+ *	PrÃ¡ctica de ProgramaciÃ³n Nro. 1
  *	
  *	Descripcion:
- *	Implementa un analizador léxico que reconoce números, identificadores, 
- * 	palabras reservadas, operadores y signos de puntuación para un lenguaje
- * 	con sintaxis tipo Pascal.
+ *	Implementar un Analizador LÃ©xico que reconozca nÃºmeros, comentarios y operadores.
  *	
+ *  Autor: Victor Daniel Rivarola Cardozo
  */
 
 /*********** LIbrerias utilizadas **************/
@@ -64,6 +63,10 @@
 #define TAMLEX 		50
 #define TAMHASH 	101
 
+
+/*******funciones para llamadas recursivas***********/
+
+
 /************* Definiciones ********************/
 
 typedef struct entrada{
@@ -89,36 +92,23 @@ char cad[5*TAMLEX];		// string utilizado para cargar mensajes de error
 token t;				// token global para recibir componentes del Analizador Lexico
 
 // variables para el analizador lexico
-
+char c=0;
 FILE *archivo;			// Fuente pascal
 char buff[2*TAMBUFF];	// Buffer para lectura de archivo fuente
 char id[TAMLEX];		// Utilizado por el analizador lexico
 int delantero=-1;		// Utilizado por el analizador lexico
 int fin=0;				// Utilizado por el analizador lexico
 int numLinea=1;			// Numero de Linea
-
+char *vsigtoken;
+float result;
 /************** Prototipos *********************/
 
 
-void sigLex();		// Del analizador Lexico
-
+int sigLex();		// Del analizador Lexico
+float expresion();
+float termino();
+float factores();
 /**************** Funciones **********************/
-int stricmp(const char* cad,const char* cad2) 
-{
-	int i;
-	char c1[strlen(cad)];
-	char c2[strlen(cad2)];
-	
-	strcpy(c1,cad);
-	strcpy(c2,cad2);
-	for(i=0;i<strlen(c1);i++)
-		c1[i]=tolower(c1[i]);
-
-	for(i=0;i<strlen(c2);i++)
-		c2[i]=tolower(c2[i]);
-
-	return strcmp(c1,c2);
-}
 
 /*********************HASH************************/
 entrada *tabla;				//declarar la tabla de simbolos
@@ -170,7 +160,7 @@ int siguiente_primo(int n)
 	return n;
 }
 
-//en caso de que la tabla llegue al limite, duplicar el tamaño
+//en caso de que la tabla llegue al limite, duplicar el tamaÃ±o
 void rehash()
 {
 	entrada *vieja;
@@ -297,10 +287,10 @@ void error(const char* mensaje)
 	printf("Lin %d: Error Lexico. %s.\n",numLinea,mensaje);	
 }
 
-void sigLex()
+int sigLex()
 {
 	int i=0, longid=0;
-	char c=0;
+
 	int acepto=0;
 	int estado=0;
 	char msg[41];
@@ -326,7 +316,7 @@ void sigLex()
 				i++;
 				c=fgetc(archivo);
 				if (i>=TAMLEX)
-					error("Longitud de Identificador excede tamaño de buffer");
+					error("Longitud de Identificador excede tamaÃ±o de buffer");
 			}while(isalpha(c) || isdigit(c));
 			id[i]='\0';
 			if (c!=EOF)
@@ -695,14 +685,108 @@ void sigLex()
 		sprintf(e.lexema,"EOF");
 		t.pe=&e;
 	}
-	
+	return c;
+}
+/*
+<expresion> -> <termino> {<opsuma> <termino>}
+<opsuma> -> + | -
+<termino> -> <factor>  { <opmult> <factor>}
+<opmult> * | /
+<factor> ( <expresion> ) | numero
+
+*/
+
+
+void msgerror(void)//mensaje de error para el match
+{
+     fprintf(stderr,"Error\n");
+     system("pause");
+     //exit(1);
+}     
+
+
+//compara el token siguiente actual con su parametro
+//si tiene exito avanza y sino da un error
+void match(char expectedToken)
+{    
+     if(vsigtoken[0]==expectedToken){
+        sigLex();
+        vsigtoken=t.pe->lexema;
+        printf("Lin %d: %s -> %d\n",numLinea,t.pe->lexema,t.compLex);
+     }
+     else msgerror();
 }
 
+//<expresion> -> <termino> {<opsuma> <termino>}
+float expresion(){
+    float temp=termino();
+    //<opsuma> -> + | -
+    while(vsigtoken[0]=='+' || vsigtoken[0]=='-'){
+         if(vsigtoken[0]=='+')
+         {
+              match('+');
+              temp+=termino();
+         }
+         else 
+         {
+             match('-');
+             temp-=termino();
+         } 
+    }
+      return temp;
+}
+
+
+//<termino> -> <factor>  { <opmult> <factor>}
+float termino()
+{
+    float temp=factores();
+    //<opmult> * | /
+    while(vsigtoken[0]=='*' || vsigtoken[0]=='/'){
+       if(vsigtoken[0]=='*')
+         {
+              match('*');
+              temp*=termino();
+         }
+         else 
+         {
+             match('/');
+             temp/=termino();
+         } 
+    }
+    return temp;
+}
+
+//<factor> ( <expresion> ) | numero
+float factores()
+{
+    int f;
+    char *aux;
+    float temp;
+    if (vsigtoken[0]=='(')
+    {
+       match('(');
+       temp=expresion();
+       match(')');
+    }
+    else if(isdigit(vsigtoken[0])){
+         temp=atof(vsigtoken);
+         sigLex();
+         vsigtoken=t.pe->lexema; 
+         printf("Lin %d: %s -> %d\n",numLinea,t.pe->lexema,t.compLex);
+    }
+    else{ 
+          msgerror();
+    }
+    return temp;
+}
+                    
 int main(int argc,char* args[])
 {
 	// inicializar analizador lexico
-	int complex=0;
-
+	int complex,i=0;
+	i=1;
+	float ver;
 	initTabla();
 	initTablaSimbolos();
 	
@@ -710,18 +794,31 @@ int main(int argc,char* args[])
 	{
 		if (!(archivo=fopen(args[1],"rt")))
 		{
-			printf("Archivo no encontrado.\n");
+			printf("Archivo no encontrado.");
+			system("pause");
 			exit(1);
 		}
-		while (t.compLex!=EOF){
-			sigLex();
-			printf("Lin %d: %s -> %d\n",numLinea,t.pe->lexema,t.compLex);
+		sigLex();
+		while (t.compLex!=EOF)
+        {   
+                    		  
+              printf("Lin %d: %s -> %d\n",numLinea,t.pe->lexema,t.compLex);
+              vsigtoken=t.pe->lexema;
+              result=expresion();
+              
+              if(i!=numLinea) {
+                   printf("resultado linea %d=>>%f\n",numLinea-1,result);
+              }
+              i=numLinea;
+  		 	
 		}
+		printf("resultado linea %d=>>%f\n",numLinea,result);
+		
 		fclose(archivo);
 	}else{
-		printf("Debe pasar como parametro el path al archivo fuente.\n");
+		printf("Debe pasar como parametro el path al archivo fuente.");
 		exit(1);
 	}
-
+    system("pause");
 	return 0;
 }
