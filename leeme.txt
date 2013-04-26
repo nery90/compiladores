@@ -1,0 +1,7 @@
+La libreria math no funciona si no se agrega el "-lm" al compilar
+y se debe incluir el archivo "strcalc.c" para que se pueda llamar 
+a la funcion "calculate"
+
+gcc calculadora.c strcalc.c -lm -o calculadora
+
+
