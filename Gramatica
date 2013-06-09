@@ -1,0 +1,15 @@
+GRAMATICA COMPILADORES
+stmt_sequence -> statement 
+statement -> for_stmt||if_stmt||repeat_stmt||assign_stmt||read_stmt||write_stmt
+for_stmt -> FOR EXP TO EXP STEP EXP DO stmt_sequence ENDFOR
+if_stmt -> IF exp THEN stmt_sequence ELSE_STMT END
+else_stmt -> ELSE stmt_sequence || ε
+repeat_stmt -> REPEAT stmt_sequence UNTIL exp
+assign_stmt -> id = exp
+read_stmt -> READ id
+write_stm -> WRITE exp
+writeln_stmt -> WRITELN exp
+exp -> simple_exp
+simple_exp -> +|- term
+term -> factor
+factor -> NUM||ID||(exp)

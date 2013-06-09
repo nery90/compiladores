@@ -1,4 +1,14 @@
-4+5
-6*6
-34
-45+55-
+//programa de prueba
+for i=0  to 5 step 1 do
+	a=b+c;
+	a=b+3
+endfor;
+if 0 == x then 
+  fact = 1;
+  repeat
+    fact = fact * x;
+    x = -1.5e-3.5;
+    writeln (6*8e33+(3-7)*(-1))
+  until x == 0;
+  write fact  
+end

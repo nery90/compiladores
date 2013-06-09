@@ -1,0 +1,1 @@
+gcc analyze.c cgen.c code.c main.c parse.c scan.c symtab.c util.c -o prueba
