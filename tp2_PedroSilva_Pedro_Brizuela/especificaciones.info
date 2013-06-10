@@ -1,0 +1,7 @@
+ANTES DE COMPILAR
+
+Primeramente copiar el archivo "libgral.g" en la carpeta /usr/include
+Compilar de la siguiente manera
+	gcc -o analizar lexico.c anSintactico.c main.c
+probar a ejecutar con ./analizar fuente.txt
+

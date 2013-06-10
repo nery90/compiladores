@@ -1,0 +1,9 @@
+VAR x,y;
+WRITE(23541 - 14523);
+x=10;
+WRITE((1562-2563)/1745);
+y=15;
+IF x>y THEN
+ ELSE
+f=1;
+END IF;
